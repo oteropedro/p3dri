@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P3DRI · Pedí tu impresión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: taller técnico, serio y prolijo, rioplatense.
+   IDEA: la línea de filamento del logo y la cama de impresión milimetrada.
+   PICTURE: el formulario mismo, con visor 3D sobre la grilla de la cama.
+   COLOUR and TYPE: blanco y grafito, celeste #01B7FF del logo como único color de marca; Lexend + Inter.
+   LAYOUT: una columna calma; panel admin como lista de tarjetas que se apila en celular. */
+:root{color-scheme:light;--bg:#ffffff;--ink:#1b1f24;--mut:#5f6670;--line:#e2e5e9;--card:#f6f7f8;--brand:#0087c2;--btn:#1b1f24;--btn-ink:#ffffff;--err:#b42318;--ok:#0f7a43;--sky:#01b7ff;--warn:#8a5a00}
+html.t-dark{color-scheme:dark;--bg:#0f1216;--ink:#eceff2;--mut:#9aa2ac;--line:#272c33;--card:#171b20;--brand:#3cc8ff;--btn:#01b7ff;--btn-ink:#0b0e11;--err:#ff8a80;--ok:#4fd08a;--warn:#ffcf5c}
+.modo{font:inherit;font-size:14px;font-weight:500;min-height:44px;padding:8px 14px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.modo svg{width:18px;height:18px}
+.hd-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+*{box-sizing:border-box;min-width:0}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,.btn,nav a,.stat b,.code{font-family:Lexend,Inter,sans-serif}
+header{background:var(--bg);border-bottom:1px solid var(--line);padding:14px max(5vw,16px);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo img{height:44px;width:auto;display:block}
+nav{display:flex;gap:6px}
+nav a{color:var(--ink);text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:500;font-size:15px}
+nav a.on{background:var(--card);color:var(--brand)}
+.hero{background:var(--card);padding:clamp(28px,5vw,56px) max(5vw,16px);border-bottom:1px solid var(--line);position:relative}
+.hero::after{content:"";position:absolute;left:max(5vw,16px);right:max(5vw,16px);bottom:-2px;height:3px;border-radius:3px;background:var(--sky)}
+.hero h1{font-size:clamp(30px,5.5vw,46px);line-height:1.08;margin:0 0 12px;font-weight:600;text-wrap:balance;max-width:20ch}
+.hero p{margin:0;max-width:56ch;color:var(--mut);font-size:17px}
+main{max-width:760px;margin:0 auto;padding:28px max(5vw,16px) 64px}
+main.wide{max-width:1100px}
+h2{font-size:22px;margin:28px 0 12px}
+label{display:block;font-weight:600;margin:16px 0 6px}
+.hint{font-size:14px;color:var(--mut);font-weight:400}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;min-height:48px}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid rgba(1,183,255,.45);outline-offset:1px;border-color:var(--sky)}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
+@media(max-width:600px){.row{grid-template-columns:minmax(0,1fr)}}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;cursor:pointer;background:var(--card);transition:border-color .15s}
+.drop.over{border-color:var(--sky)}
+.drop strong{display:block;font-size:17px}
+.bed{position:relative;height:300px;border-radius:14px;overflow:hidden;margin-top:12px;display:none;
+background-color:var(--card);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:20px 20px}
+.bed canvas{position:absolute;inset:0;width:100%;height:100%}
+.dims{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{font:inherit;font-size:15px;min-height:44px;padding:8px 16px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.seg button.on{background:rgba(1,183,255,.12);color:var(--brand);border-color:var(--sky);font-weight:600}
+.sw{display:flex;flex-wrap:wrap;gap:10px}
+.sw button{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);cursor:pointer;position:relative}
+.sw button.on{outline:3px solid var(--sky);outline-offset:2px}
+.sw .multi{background:conic-gradient(#d7263d,#ffc914,#18a058,#01b7ff,#7b3fe4,#d7263d)}
+.sw .other{background:var(--bg);font:600 13px Inter,sans-serif;color:var(--ink)}
+.btn{font:inherit;font-weight:700;font-size:17px;min-height:52px;padding:12px 22px;border-radius:10px;border:0;background:var(--btn);color:var(--btn-ink);cursor:pointer;width:100%;margin-top:26px}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.sec{background:var(--card);color:var(--ink);border:1.5px solid var(--line);width:auto;margin:0;font-size:15px;min-height:44px;padding:8px 14px}
+.btn.wa{background:#1fa855;width:auto;margin:0;font-size:15px;min-height:44px;padding:8px 14px;text-decoration:none;display:inline-flex;align-items:center}
+.msg{margin-top:14px;padding:14px;border-radius:12px;display:none}
+.msg.err{display:block;background:rgba(220,60,50,.12);color:var(--err)}
+.done{text-align:center;padding:40px 10px}
+.done h2{font-size:32px}
+.code{font-weight:800;font-size:28px;color:var(--brand)}
+.note{font-size:13px;color:var(--mut);margin-top:10px}
+/* admin */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+.bar input{max-width:280px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.stat{background:var(--card);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:28px;line-height:1.1}
+.stat span{font-size:13px;color:var(--mut)}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ped{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;background:var(--bg)}
+.ped .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.ped h3{margin:0;font-size:18px}
+.ped .meta{font-size:14px;color:var(--mut)}
+.tag{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.t-nuevo{background:rgba(1,183,255,.16);color:var(--brand)}
+.t-cotizado{background:rgba(123,135,148,.18);color:var(--ink)}
+.t-aceptado,.t-imprimiendo{background:rgba(255,176,0,.22);color:var(--warn)}
+.t-entregado{background:rgba(40,170,100,.15);color:var(--ok)}
+.t-rechazado{background:var(--card);color:var(--mut)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 16px;margin:12px 0;font-size:15px}
+.grid2 div span{color:var(--mut);font-size:13px;display:block}
+@media(max-width:600px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.acts select,.acts input{width:auto;min-height:44px;padding:8px 10px}
+.acts input{width:130px}
+.aviso{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--card);border-left:3px solid var(--sky);font-size:15px}
+.aviso svg{flex:none;width:20px;height:20px;color:var(--brand);margin-top:2px}
+.aviso b{white-space:nowrap}
+.chip.warn{white-space:normal;border-radius:10px;background:rgba(255,176,0,.18);border-color:transparent;color:var(--warn)}
+footer{border-top:1px solid var(--line);padding:18px max(5vw,16px);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--mut)}
+footer a{color:var(--mut);text-decoration:none;padding:10px 0}
+footer a:hover{color:var(--brand)}
+.empty{text-align:center;color:var(--mut);padding:40px 10px;border:2px dashed var(--line);border-radius:14px}
+.hidden{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script>{let m='light';try{m=localStorage.getItem('p3dri-modo')||'light'}catch(e){}document.documentElement.classList.add('t-'+m)}</script>
+</head>
+<body>
+<header>
+  <div class="logo"><img src="logo.png" alt="P3DRI"></div>
+  <div class="hd-r"><nav><a href="#pedir" id="nPedir" class="on">Pedí tu pieza</a><a href="#panel" id="nPanel" class="hidden">Panel</a></nav>
+  <button type="button" class="modo" id="modo" aria-label="Cambiar entre modo claro y oscuro"></button></div>
+</header>
+
+<section id="vPedir">
+  <div class="hero">
+    <h1>Subí tu modelo y te cotizamos la impresión</h1>
+    <p>Cargá el archivo, elegí material y color, y te respondemos por WhatsApp con el precio y el plazo.</p>
+  </div>
+  <main>
+    <form id="f" novalidate>
+      <h2>Tu modelo</h2>
+      <div class="seg" id="tipo">
+        <button type="button" data-v="archivo" class="on">Tengo el archivo</button>
+        <button type="button" data-v="link">Tengo un link</button>
+        <button type="button" data-v="diseno">No tengo modelo</button>
+      </div>
+
+      <div id="bArchivo">
+        <label for="file" class="drop" id="drop">
+          <strong id="dropT">Tocá para elegir el archivo o arrastralo acá</strong>
+          <span class="hint">STL, 3MF, OBJ o STEP · hasta 20 MB</span>
+        </label>
+        <input type="file" id="file" accept=".stl,.3mf,.obj,.step,.stp" class="hidden">
+        <div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+          <div>Tamaño máximo por pieza: <b>220 × 220 × 250 mm</b>. Si tu modelo es más grande, mandalo igual: te proponemos cómo dividirlo en partes.</div></div>
+        <div class="bed" id="bed"><canvas id="cv"></canvas></div>
+        <div class="dims" id="dims"></div>
+      </div>
+      <div id="bLink" class="hidden">
+        <label for="link">Link al modelo <span class="hint">Thingiverse, Printables, Drive…</span></label>
+        <input id="link" type="url" placeholder="https://">
+      </div>
+      <div id="bDiseno" class="hidden">
+        <label for="desc">Contanos qué necesitás <span class="hint">medidas, fotos de referencia por WhatsApp, si hay que escanear una pieza</span></label>
+        <textarea id="desc" placeholder="Ej.: necesito un repuesto de una perilla de horno, tengo la original rota para escanear"></textarea>
+      </div>
+
+      <h2>Cómo lo querés</h2>
+      <label>Material</label>
+      <div class="seg" id="mat">
+        <button type="button" data-v="PLA" class="on">PLA</button>
+        <button type="button" data-v="PETG">PETG</button>
+        <button type="button" data-v="TPU (flexible)">TPU flexible</button>
+        <button type="button" data-v="ABS/ASA">ABS / ASA</button>
+        <button type="button" data-v="Recomendame">Recomendame</button>
+      </div>
+      <label>Color</label>
+      <div class="sw" id="col"></div>
+      <input id="colOtro" class="hidden" placeholder="¿Qué color?" style="margin-top:10px">
+
+      <div class="row">
+        <div><label for="cant">Cantidad</label><input id="cant" type="number" min="1" value="1" inputmode="numeric"></div>
+        <div><label for="uso">Uso de la pieza</label>
+          <select id="uso"><option>Decorativa</option><option>Funcional / mecánica</option><option>Prototipo</option><option>Regalo</option><option>Otro</option></select></div>
+      </div>
+      <label for="fecha">¿Para cuándo? <span class="hint">opcional</span></label><input id="fecha" type="date">
+      <label for="notas">Aclaraciones <span class="hint">opcional</span></label>
+      <textarea id="notas" placeholder="Ej.: que sea resistente al sol, va atornillada, necesito tolerancias justas"></textarea>
+
+      <h2>Tus datos</h2>
+      <div class="row">
+        <div><label for="nom">Nombre</label><input id="nom" autocomplete="name"></div>
+        <div><label for="tel">WhatsApp</label><input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="351 555 1234"></div>
+      </div>
+      <label for="mail">Email <span class="hint">opcional</span></label>
+      <input id="mail" type="email" autocomplete="email">
+
+      <input id="web" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+      <button class="btn" id="send" type="submit">Pedir cotización</button>
+      <div class="msg" id="msg"></div>
+    </form>
+    <div class="done hidden" id="done">
+      <h2>¡Listo, recibimos tu pedido!</h2>
+      <p>Tu número de pedido es</p>
+      <div class="code" id="codeOut"></div>
+      <p>Te escribimos por WhatsApp con la cotización.</p>
+      <button class="btn sec" id="otro" type="button">Hacer otro pedido</button>
+    </div>
+  </main>
+</section>
+
+<section id="vPanel" class="hidden">
+  <main class="wide">
+    <form id="login" class="hidden" style="max-width:380px">
+      <h2 style="font-size:28px;margin-top:8px">Panel de pedidos</h2>
+      <label for="pass">Clave de administrador</label><input id="pass" type="password" autocomplete="current-password">
+      <button class="btn" type="submit" id="entrar">Entrar</button><div class="msg" id="lmsg"></div>
+    </form>
+    <div id="admin" class="hidden">
+    <div class="bar" style="justify-content:space-between"><h2 style="font-size:32px;margin:8px 0 0">Pedidos</h2>
+      <span style="display:flex;gap:8px"><button class="btn sec" id="refresh" type="button">Actualizar</button><button class="btn sec" id="salir" type="button">Salir</button></span></div>
+    <div class="stats" id="stats"></div>
+    <div class="bar">
+      <input id="q" placeholder="Buscar por nombre o número">
+      <select id="fEst" style="width:auto"><option value="">Todos</option></select>
+    </div>
+    <div id="lista"><div class="empty">Cargando pedidos…</div></div>
+    <div class="bed" id="bedA" style="height:320px"><canvas id="cvA"></canvas></div>
+    </div>
+  </main>
+</section>
+
+<footer><span>P3DRI · Diseño e impresión 3D</span><a href="#panel">Acceso administrador</a></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+{
+const $=id=>document.getElementById(id);
+const ESTADOS=['nuevo','cotizado','aceptado','imprimiendo','entregado','rechazado'];
+const COLORES=[['Negro','#111'],['Blanco','#f4f4f4'],['Gris','#8a8f98'],['Rojo','#d7263d'],['Azul','#1f5fd6'],['Celeste','#01b7ff'],['Verde','#18a058'],['Amarillo','#ffc914'],['Naranja','#ff7a1a'],['Rosa','#ff6fb1'],['Violeta','#7b3fe4']];
+/* ===== CONFIGURACIÓN: pegá acá la URL de tu Apps Script (termina en /exec) ===== */
+const API='PEGAR_ACA_LA_URL_DEL_APPS_SCRIPT';
+const MAX=20*1024*1024;
+let pedidos=[],clave='';
+try{clave=localStorage.getItem('p3dri-clave')||''}catch(e){}
+async function api(body){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+  const j=await r.json();if(!j.ok)throw new Error(j.error||'Error del servidor');return j}
+const st={tipo:'archivo',mat:'PLA',col:'Negro',file:null,geo:null};
+
+/* --- selección --- */
+function seg(id,key,cb){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  [...$(id).children].forEach(x=>x.classList.toggle('on',x===b));st[key]=b.dataset.v;cb&&cb()})}
+seg('tipo','tipo',()=>{$('bArchivo').classList.toggle('hidden',st.tipo!=='archivo');$('bLink').classList.toggle('hidden',st.tipo!=='link');$('bDiseno').classList.toggle('hidden',st.tipo!=='diseno')});
+seg('mat','mat');
+$('col').innerHTML=COLORES.map(([n,c],i)=>`<button type="button" title="${n}" aria-label="${n}" data-v="${n}" style="background:${c}" class="${i?'':'on'}"></button>`).join('')+
+  `<button type="button" class="multi" title="Multicolor" aria-label="Multicolor" data-v="Multicolor"></button><button type="button" class="other" data-v="Otro" aria-label="Otro color">otro</button>`;
+seg('col','col',()=>$('colOtro').classList.toggle('hidden',st.col!=='Otro'));
+
+/* --- visor 3D --- */
+function viewer(canvas){
+  if(!window.THREE||!THREE.STLLoader)return null;
+  const r=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(40,1,0.1,10000);
+  sc.add(new THREE.HemisphereLight(0xffffff,0x444455,1.1));const dl1=new THREE.DirectionalLight(0xffffff,.8);dl1.position.set(1,2,1.5);sc.add(dl1);
+  const ctl=new THREE.OrbitControls(cam,canvas);ctl.enableDamping=true;let mesh=null;
+  function size(){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;r.setPixelRatio(Math.min(devicePixelRatio,2));r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+  const ro=new ResizeObserver(size);ro.observe(canvas);
+  (function loop(){requestAnimationFrame(loop);ctl.update();r.render(sc,cam)})();
+  return{show(geo,color){if(mesh)sc.remove(mesh);geo.computeVertexNormals();geo.center();
+      mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:color||0x01b7ff,roughness:.55,metalness:.05}));mesh.rotation.x=-Math.PI/2;sc.add(mesh);
+      geo.computeBoundingSphere();const R=geo.boundingSphere.radius||1;cam.position.set(R*2.1,R*1.7,R*2.5);ctl.target.set(0,0,0);size()},
+    color(c){if(mesh)mesh.material.color.set(c)}}
+}
+let vC=null,vA=null;
+function analizar(geo){geo.computeBoundingBox();const b=geo.boundingBox,p=geo.attributes.position.array;let v=0;
+  for(let i=0;i<p.length;i+=9){const[ax,ay,az,bx,by,bz,cx,cy,cz]=p.subarray(i,i+9);v+=(ax*(by*cz-bz*cy)-ay*(bx*cz-bz*cx)+az*(bx*cy-by*cx))/6}
+  return{x:+(b.max.x-b.min.x).toFixed(1),y:+(b.max.y-b.min.y).toFixed(1),z:+(b.max.z-b.min.z).toFixed(1),cm3:+(Math.abs(v)/1000).toFixed(1)}}
+const CAMA=[220,220,250];
+const excede=d=>{const a=[...d].map(Number).sort((x,y)=>x-y),c=[...CAMA].sort((x,y)=>x-y);return a.length===3&&a.some((v,i)=>v>c[i])};
+function chips(g){return g?`<span class="chip">${g.x} × ${g.y} × ${g.z} mm</span><span class="chip">${g.cm3} cm³ de volumen</span>`+
+  (excede([g.x,g.y,g.z])?'<span class="chip warn">Más grande que la cama: lo vamos a dividir en partes</span>':''):''}
+const colHex=()=>(COLORES.find(c=>c[0]===st.col)||[0,'#01b7ff'])[1];
+$('col').addEventListener('click',()=>vC&&vC.color(colHex()));
+
+/* --- archivo --- */
+function setFile(f){$('msg').className='msg';
+  if(!f)return;if(f.size>MAX){err('El archivo pesa más de 20 MB. Pegá un link de Drive en la opción "Tengo un link".');return}
+  st.file=f;st.geo=null;$('dropT').textContent=f.name+' · '+(f.size/1048576).toFixed(1)+' MB';$('dims').innerHTML='';
+  if(/\.stl$/i.test(f.name)&&window.THREE&&THREE.STLLoader){f.arrayBuffer().then(buf=>{try{const geo=new THREE.STLLoader().parse(buf);st.geo=analizar(geo);
+      $('bed').style.display='block';vC=vC||viewer($('cv'));vC&&vC.show(geo,colHex());$('dims').innerHTML=chips(st.geo)}catch(e){$('bed').style.display='none'}})}
+  else{$('bed').style.display='none';$('dims').innerHTML='<span class="chip">Vista previa solo para STL; el archivo se envía igual</span>'}}
+$('file').addEventListener('change',e=>setFile(e.target.files[0]));
+const dr=$('drop');['dragover','dragenter'].forEach(t=>dr.addEventListener(t,e=>{e.preventDefault();dr.classList.add('over')}));
+['dragleave','drop'].forEach(t=>dr.addEventListener(t,()=>dr.classList.remove('over')));
+dr.addEventListener('drop',e=>{e.preventDefault();setFile(e.dataTransfer.files[0])});
+
+function b64(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+function err(t){const m=$('msg');m.textContent=t;m.className='msg err'}
+const codigo=()=>'P'+Date.now().toString(36).slice(-5).toUpperCase();
+
+/* --- enviar --- */
+$('f').addEventListener('submit',async e=>{e.preventDefault();
+  const nom=$('nom').value.trim(),tel=$('tel').value.replace(/[^\d+]/g,'');
+  if(!nom||tel.length<8)return err('Completá tu nombre y un WhatsApp válido.');
+  if(st.tipo==='archivo'&&!st.file)return err('Elegí el archivo del modelo, o usá otra opción.');
+  if(st.tipo==='link'&&!/^https?:\/\//.test($('link').value.trim()))return err('Pegá un link que empiece con https://');
+  if(st.tipo==='diseno'&&!$('desc').value.trim())return err('Contanos qué necesitás que diseñemos.');
+  if(API.startsWith('PEGAR'))return err('La página todavía no está conectada al servidor.');
+  const b=$('send');b.disabled=true;b.textContent=st.tipo==='archivo'?'Subiendo archivo…':'Enviando…';
+  try{let archivo=null;
+    if(st.tipo==='archivo')archivo={nombre:st.file.name,mb:+(st.file.size/1048576).toFixed(2),b64:b64(await st.file.arrayBuffer())};
+    const cod=codigo();
+    await api({action:'pedido',web:$('web').value,pedido:{codigo:cod,nombre:nom,tel,mail:$('mail').value.trim(),tipo:st.tipo,archivo,
+      medidas:st.geo?`${st.geo.x} × ${st.geo.y} × ${st.geo.z} mm`:'',cm3:st.geo?st.geo.cm3:'',link:$('link').value.trim(),desc:$('desc').value.trim(),
+      material:st.mat,color:st.col==='Otro'?($('colOtro').value.trim()||'Otro'):st.col,cantidad:Math.max(1,+$('cant').value||1),
+      uso:$('uso').value,fecha:$('fecha').value,notas:$('notas').value.trim()}});
+    $('codeOut').textContent=cod;$('f').classList.add('hidden');$('done').classList.remove('hidden');scrollTo(0,0)
+  }catch(x){err('No se pudo enviar el pedido. Revisá tu conexión y probá de nuevo. Si sigue fallando, escribinos por WhatsApp.')}
+  b.disabled=false;b.textContent='Pedir cotización'});
+$('otro').addEventListener('click',()=>{$('f').reset();st.file=null;st.geo=null;$('dropT').textContent='Tocá para elegir el archivo o arrastralo acá';$('dims').innerHTML='';$('bed').style.display='none';$('f').classList.remove('hidden');$('done').classList.add('hidden')});
+
+/* --- panel admin --- */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=t=>esc(t);
+const waNum=t=>{let n=String(t).replace(/\D/g,'');if(n.startsWith('0'))n=n.slice(1);if(!n.startsWith('54'))n='549'+n;return n};
+function waMsg(p){const pr=p.precio?`$${Number(p.precio).toLocaleString('es-AR')}`:'$____';
+  return `Hola ${p.nombre}! Te escribo de P3DRI por tu pedido ${p.codigo}.\n${p.cantidad} u. en ${p.material}, color ${p.color}.\nCotización: ${pr} en total.\nPlazo estimado: ___ días.\n¿Lo confirmamos?`}
+$('fEst').innerHTML+=ESTADOS.map(e=>`<option value="${e}">${e[0].toUpperCase()+e.slice(1)}</option>`).join('');
+function render(){const q=$('q').value.trim().toLowerCase(),fe=$('fEst').value;
+  const cnt=e=>pedidos.filter(p=>p.estado===e).length;
+  $('stats').innerHTML=[['Nuevos',cnt('nuevo')],['Cotizados',cnt('cotizado')],['En curso',cnt('aceptado')+cnt('imprimiendo')],['Entregados',cnt('entregado')]].map(([l,n])=>`<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('');
+  const L=pedidos.filter(p=>(!fe||p.estado===fe)&&(!q||(p.nombre+' '+p.codigo).toLowerCase().includes(q)));
+  if(!L.length){$('lista').innerHTML=`<div class="empty">${pedidos.length?'Ningún pedido coincide con el filtro.':'Todavía no hay pedidos. Cuando un cliente cargue uno, te llega un mail y aparece acá.'}</div>`;return}
+  $('lista').innerHTML=L.map(p=>`<article class="ped" data-id="${esc(p.codigo)}">
+    <div class="top"><h3>${esc(p.nombre)} · ${esc(p.codigo)}</h3><span class="tag t-${esc(p.estado)}">${esc(p.estado)}</span></div>
+    <div class="meta">${fmt(p.creado)} · WhatsApp ${esc(p.tel)}${p.mail?' · '+esc(p.mail):''}</div>
+    <div class="grid2">
+      <div><span>Modelo</span>${p.tipo==='archivo'&&p.archivoId?esc(p.archivoNombre)+' ('+(Number(p.archivoMB)<0.1?'menos de 0,1':esc(p.archivoMB))+' MB)':p.tipo==='link'?`<a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(p.link)}</a>`:'Diseño / escaneo: '+esc(p.desc)}</div>
+      <div><span>Material y color</span>${esc(p.material)} · ${esc(p.color)}</div>
+      <div><span>Cantidad y uso</span>${esc(p.cantidad)} u. · ${esc(p.uso)}</div>
+      ${p.fecha?`<div><span>Para el</span>${esc(p.fecha.split('-').reverse().join('/'))}</div>`:''}
+      ${p.medidas?`<div><span>Medidas</span>${esc(p.medidas)} · ${esc(p.cm3)} cm³${excede((p.medidas.match(/[\d.]+/g)||[]))?' <span class="chip warn">Excede la cama</span>':''}</div>`:''}
+      ${p.notas?`<div><span>Aclaraciones</span>${esc(p.notas)}</div>`:''}
+    </div>
+    <div class="acts">
+      <select data-a="estado" aria-label="Estado">${ESTADOS.map(e=>`<option ${e===p.estado?'selected':''}>${e}</option>`).join('')}</select>
+      <input data-a="precio" type="number" inputmode="numeric" placeholder="Precio $" value="${esc(p.precio)}" aria-label="Precio">
+      <a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/${waNum(p.tel)}?text=${encodeURIComponent(waMsg(p))}">Cotizar por WhatsApp</a>
+      ${p.archivoId?`${/\.stl$/i.test(p.archivoNombre)?'<button class="btn sec" data-a="ver" type="button">Ver 3D</button>':''}<a class="btn sec" style="text-decoration:none;display:inline-flex;align-items:center" target="_blank" rel="noopener" href="${esc(p.archivoUrl)}">Abrir en Drive</a>`:''}
+    </div></article>`).join('')}
+$('q').addEventListener('input',render);$('fEst').addEventListener('change',render);
+$('lista').addEventListener('change',async e=>{const a=e.target.dataset.a;if(!a)return;const id=e.target.closest('.ped').dataset.id;
+  const p=pedidos.find(x=>x.codigo===id);if(!p)return;const v=e.target.value;
+  try{const j=await api({action:'actualizar',key:clave,codigo:id,campo:a,valor:v});Object.assign(p,j.pedido||{[a]:v});render()}catch(x){alertBox('No se pudo guardar el cambio.')}});
+$('lista').addEventListener('click',async e=>{const b=e.target.closest('button[data-a="ver"]');if(!b)return;const p=pedidos.find(x=>x.codigo===b.closest('.ped').dataset.id);if(!p)return;
+  b.disabled=true;b.textContent='Cargando…';
+  try{const j=await api({action:'archivo',key:clave,id:p.archivoId});const s=atob(j.b64),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);
+    const geo=new THREE.STLLoader().parse(u.buffer);const bed=$('bedA');b.closest('.ped').after(bed);bed.style.display='block';vA=vA||viewer($('cvA'));vA&&vA.show(geo,0x01b7ff);bed.scrollIntoView({behavior:'smooth',block:'center'})
+  }catch(x){alertBox('No se pudo abrir el archivo.')}
+  b.disabled=false;b.textContent='Ver 3D'});
+function alertBox(t){const d=document.createElement('div');d.className='msg err';d.style.cssText='display:block;position:fixed;left:16px;right:16px;bottom:16px;z-index:9;max-width:520px;margin:auto';d.textContent=t;document.body.append(d);setTimeout(()=>d.remove(),3500)}
+async function cargar(){$('refresh').disabled=true;
+  try{const j=await api({action:'listar',key:clave});pedidos=j.pedidos;render();return true}
+  catch(x){if(/clave/i.test(x.message)){salir();return false}$('lista').innerHTML='<div class="empty">No se pudieron cargar los pedidos. Tocá Actualizar.</div>';return true}
+  finally{$('refresh').disabled=false}}
+function salir(){clave='';try{localStorage.removeItem('p3dri-clave')}catch(e){}$('nPanel').classList.add('hidden');ruta()}
+$('login').addEventListener('submit',async e=>{e.preventDefault();clave=$('pass').value;const b=$('entrar');b.disabled=true;b.textContent='Entrando…';
+  try{const j=await api({action:'listar',key:clave});pedidos=j.pedidos;try{localStorage.setItem('p3dri-clave',clave)}catch(e){}$('pass').value='';cargado=true;ruta();render()}
+  catch(x){clave='';$('lmsg').textContent=/clave/i.test(x.message)?'Clave incorrecta.':'No se pudo conectar con el servidor.';$('lmsg').className='msg err'}
+  b.disabled=false;b.textContent='Entrar'});
+$('refresh').addEventListener('click',cargar);$('salir').addEventListener('click',()=>{salir();location.hash='#pedir'});
+
+/* --- modo claro / oscuro --- */
+const SOL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const LUNA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function pintarModo(){const osc=document.documentElement.classList.contains('t-dark');$('modo').innerHTML=osc?SOL+'Modo claro':LUNA+'Modo oscuro'}
+$('modo').addEventListener('click',()=>{const h=document.documentElement,osc=!h.classList.contains('t-dark');h.classList.toggle('t-dark',osc);h.classList.toggle('t-light',!osc);
+  try{localStorage.setItem('p3dri-modo',osc?'dark':'light')}catch(e){}pintarModo()});
+pintarModo();
+
+/* --- rutas --- */
+let cargado=false;
+function ruta(){const pan=location.hash==='#panel';$('vPedir').classList.toggle('hidden',pan);$('vPanel').classList.toggle('hidden',!pan);
+  $('nPedir').classList.toggle('on',!pan);$('nPanel').classList.toggle('on',pan);$('nPanel').classList.toggle('hidden',!clave);
+  $('login').classList.toggle('hidden',!!clave);$('admin').classList.toggle('hidden',!clave);
+  if(pan&&clave&&!cargado){cargado=true;cargar()}if(!clave)cargado=false}
+addEventListener('hashchange',ruta);ruta();
+}
+</script>
+</body>
+</html>
