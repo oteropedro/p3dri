@@ -220,12 +220,17 @@ const $=id=>document.getElementById(id);
 const ESTADOS=['nuevo','cotizado','aceptado','imprimiendo','entregado','rechazado'];
 const COLORES=[['Negro','#111'],['Blanco','#f4f4f4'],['Gris','#8a8f98'],['Rojo','#d7263d'],['Azul','#1f5fd6'],['Celeste','#01b7ff'],['Verde','#18a058'],['Amarillo','#ffc914'],['Naranja','#ff7a1a'],['Rosa','#ff6fb1'],['Violeta','#7b3fe4']];
 /* ===== CONFIGURACIÓN: pegá acá la URL de tu Apps Script (termina en /exec) ===== */
-const API='PEGAR_ACA_LA_URL_DEL_APPS_SCRIPT';
+const API='https://script.google.com/macros/s/AKfycbxFauc4VVyEManWFkp1roW8EpUIrMjLgd14NGlVV0huEsTtzdNR-5OZwhajsdhgkT3y_w/exec';
 const MAX=20*1024*1024;
 let pedidos=[],clave='';
 try{clave=localStorage.getItem('p3dri-clave')||''}catch(e){}
-async function api(body){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
-  const j=await r.json();if(!j.ok)throw new Error(j.error||'Error del servidor');return j}
+async function api(body){
+  if(API.startsWith('PEGAR'))throw new Error('Falta pegar la URL del servidor en index.html (línea const API).');
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(API))throw new Error('La URL del servidor no tiene el formato correcto. Tiene que ser https://script.google.com/macros/s/.../exec');
+  let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})}
+  catch(e){throw new Error('Sin respuesta del servidor. Revisá que el acceso esté en "Cualquier persona" y que hayas publicado una Nueva versión.')}
+  let j;try{j=await r.json()}catch(e){throw new Error('El servidor respondió con un error (HTTP '+r.status+'). Volvé a publicar una Nueva versión y aceptá los permisos.')}
+  if(!j.ok)throw new Error(j.error||'Error del servidor');return j}
 const st={tipo:'archivo',mat:'PLA',col:'Negro',file:null,geo:null};
 
 /* --- selección --- */
@@ -342,12 +347,12 @@ $('lista').addEventListener('click',async e=>{const b=e.target.closest('button[d
 function alertBox(t){const d=document.createElement('div');d.className='msg err';d.style.cssText='display:block;position:fixed;left:16px;right:16px;bottom:16px;z-index:9;max-width:520px;margin:auto';d.textContent=t;document.body.append(d);setTimeout(()=>d.remove(),3500)}
 async function cargar(){$('refresh').disabled=true;
   try{const j=await api({action:'listar',key:clave});pedidos=j.pedidos;render();return true}
-  catch(x){if(/clave/i.test(x.message)){salir();return false}$('lista').innerHTML='<div class="empty">No se pudieron cargar los pedidos. Tocá Actualizar.</div>';return true}
+  catch(x){if(/clave incorrecta/i.test(x.message)){salir();return false}$('lista').innerHTML='<div class="empty">No se pudieron cargar los pedidos. Tocá Actualizar.</div>';return true}
   finally{$('refresh').disabled=false}}
 function salir(){clave='';try{localStorage.removeItem('p3dri-clave')}catch(e){}$('nPanel').classList.add('hidden');ruta()}
 $('login').addEventListener('submit',async e=>{e.preventDefault();clave=$('pass').value;const b=$('entrar');b.disabled=true;b.textContent='Entrando…';
   try{const j=await api({action:'listar',key:clave});pedidos=j.pedidos;try{localStorage.setItem('p3dri-clave',clave)}catch(e){}$('pass').value='';cargado=true;ruta();render()}
-  catch(x){clave='';$('lmsg').textContent=/clave/i.test(x.message)?'Clave incorrecta.':'No se pudo conectar con el servidor.';$('lmsg').className='msg err'}
+  catch(x){clave='';$('lmsg').textContent=/clave incorrecta/i.test(x.message)?'Clave incorrecta.':'No se pudo conectar con el servidor: '+x.message;$('lmsg').className='msg err'}
   b.disabled=false;b.textContent='Entrar'});
 $('refresh').addEventListener('click',cargar);$('salir').addEventListener('click',()=>{salir();location.hash='#pedir'});
 
